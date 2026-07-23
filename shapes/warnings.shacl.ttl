@@ -1,0 +1,273 @@
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix time:  <http://www.w3.org/2006/time#> .
+@prefix xemo:  <https://example.org/xemo#> .
+@prefix demo:  <https://example.org/xemo/demo#> .
+@prefix sosa:  <http://www.w3.org/ns/sosa/> .
+@prefix qudt:  <http://qudt.org/schema/qudt/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+#################################################################
+# Green warning
+# value < 0.7 * threshold
+#################################################################
+
+demo:GreenWarningDailyShape
+    a sh:NodeShape ;
+    sh:deactivated true ;
+    sh:targetClass sosa:Observation ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Green warning: observed value is below 70% of the daily limit value." ;
+        sh:select """
+            PREFIX time: <http://www.w3.org/2006/time#>
+            PREFIX xemo: <https://example.org/xemo#>
+            PREFIX sosa: <http://www.w3.org/ns/sosa/>
+            PREFIX qudt: <http://qudt.org/schema/qudt/>
+
+            SELECT $this ?feat ?pollutant ?value ?threshold ?unit
+            WHERE {
+                $this a sosa:Observation ;
+                      sosa:observedProperty ?pollutant ;
+                      sosa:hasFeatureOfInterest ?feat ;
+                      sosa:hasResult/qudt:hasUnit ?unit ;
+                      sosa:hasResult/qudt:numericValue ?value ;
+                      sosa:hasProcedure xemo:DailyMean .
+
+                ?t xemo:isThresholdOfPollutant ?pollutant ;
+                   xemo:hasThresholdKind xemo:LimitValue ;
+                   xemo:hasAveragingPeriod/time:days 1 ;
+                   xemo:hasQuantityValue/qudt:numericValue ?threshold .
+
+                FILTER(?value < 0.7 * ?threshold)
+            }
+        """ ;
+    ] .
+
+#################################################################
+# Yellow warning
+# 0.7 * threshold <= value < threshold
+#################################################################
+
+demo:YellowWarningDailyShape
+    a sh:NodeShape ;
+    sh:targetClass sosa:Observation ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Yellow warning: Apply preventive mitigation measures such as water spraying and truck speed reduction." ;
+        sh:select """
+            PREFIX time: <http://www.w3.org/2006/time#>
+            PREFIX xemo: <https://example.org/xemo#>
+            PREFIX sosa: <http://www.w3.org/ns/sosa/>
+            PREFIX qudt: <http://qudt.org/schema/qudt/>
+
+            SELECT $this ?feat ?pollutant ?value ?threshold ?unit
+            WHERE {
+                $this a sosa:Observation ;
+                      sosa:observedProperty ?pollutant ;
+                      sosa:hasFeatureOfInterest ?feat ;
+                      sosa:hasResult/qudt:hasUnit ?unit ;
+                      sosa:hasResult/qudt:numericValue ?value ;
+                      sosa:hasProcedure xemo:DailyMean .
+
+                ?t xemo:isThresholdOfPollutant ?pollutant ;
+                   xemo:hasThresholdKind xemo:LimitValue ;
+                   xemo:hasAveragingPeriod/time:days 1 ;
+                   xemo:hasQuantityValue/qudt:numericValue ?threshold .
+
+                FILTER(?value >= 0.7 * ?threshold && ?value < ?threshold)
+            }
+        """ ;
+    ] .
+
+#################################################################
+# Orange warning
+# threshold <= value < alert
+#################################################################
+
+demo:OrangeWarningDailyShape
+    a sh:NodeShape ;
+    sh:targetClass sosa:Observation ;
+    sh:severity sh:Violation ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Orange warning: Immediate action is required, including temporary suspension of high dust-generating activities and implementation of intensified mitigation measures." ;
+        sh:select """
+            PREFIX time: <http://www.w3.org/2006/time#>
+            PREFIX xemo: <https://example.org/xemo#>
+            PREFIX sosa: <http://www.w3.org/ns/sosa/>
+            PREFIX qudt: <http://qudt.org/schema/qudt/>
+
+            SELECT $this ?feat ?pollutant ?value ?threshold ?alert ?unit
+            WHERE {
+                $this a sosa:Observation ;
+                      sosa:observedProperty ?pollutant ;
+                      sosa:hasFeatureOfInterest ?feat ;
+                      sosa:hasResult/qudt:hasUnit ?unit ;
+                      sosa:hasResult/qudt:numericValue ?value ;
+                      sosa:hasProcedure xemo:DailyMean .
+
+                ?t xemo:isThresholdOfPollutant ?pollutant ;
+                   xemo:hasThresholdKind xemo:LimitValue ;
+                   xemo:hasAveragingPeriod/time:days 1 ;
+                   xemo:hasQuantityValue/qudt:numericValue ?threshold .
+
+                ?a xemo:isThresholdOfPollutant ?pollutant ;
+                   xemo:hasThresholdKind xemo:AlertThreshold ;
+                   xemo:hasAveragingPeriod/time:days 1 ;
+                   xemo:hasQuantityValue/qudt:numericValue ?alert .
+
+                FILTER(?value >= ?threshold && ?value < ?alert)
+            }
+        """ ;
+    ] .
+
+#################################################################
+# Red warning
+# value >= alert
+#################################################################
+
+demo:RedWarningDailyShape
+    a sh:NodeShape ;
+    sh:targetClass sosa:Observation ;
+    sh:severity sh:Violation ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Red warning: Stop to all dusty activties until conditions returns below threshold." ;
+        sh:select """
+            PREFIX time: <http://www.w3.org/2006/time#>
+            PREFIX xemo: <https://example.org/xemo#>
+            PREFIX sosa: <http://www.w3.org/ns/sosa/>
+            PREFIX qudt: <http://qudt.org/schema/qudt/>
+
+            SELECT $this ?feat ?pollutant ?value ?alert ?unit
+            WHERE {
+                $this a sosa:Observation ;
+                      sosa:observedProperty ?pollutant ;
+                      sosa:hasFeatureOfInterest ?feat ;
+                      sosa:hasResult/qudt:hasUnit ?unit ;
+                      sosa:hasResult/qudt:numericValue ?value ;
+                      sosa:hasProcedure xemo:DailyMean .
+
+                ?a xemo:isThresholdOfPollutant ?pollutant ;
+                   xemo:hasThresholdKind xemo:AlertThreshold ;
+                   xemo:hasAveragingPeriod/time:days 1 ;
+                   xemo:hasQuantityValue/qudt:numericValue ?alert .
+
+                FILTER(?value >= ?alert)
+            }
+        """ ;
+    ] .
+
+
+    
+#################################################################
+# Green warning
+# value < threshold
+#################################################################
+
+demo:GreenWarningHourlyShape
+    a sh:NodeShape ;
+    sh:deactivated true ;
+    sh:targetClass sosa:Observation ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Green warning: observed value is below 70% of the daily limit value." ;
+        sh:select """
+            PREFIX time: <http://www.w3.org/2006/time#>
+            PREFIX xemo: <https://example.org/xemo#>
+            PREFIX sosa: <http://www.w3.org/ns/sosa/>
+            PREFIX qudt: <http://qudt.org/schema/qudt/>
+
+            SELECT $this ?feat ?pollutant ?value ?threshold ?unit
+            WHERE {
+                $this a sosa:Observation ;
+                      sosa:observedProperty ?pollutant ;
+                      sosa:hasFeatureOfInterest ?feat ;
+                      sosa:hasResult/qudt:hasUnit ?unit ;
+                      sosa:hasResult/qudt:numericValue ?value ;
+                      sosa:hasProcedure xemo:HourlyMean .
+
+                ?t xemo:isThresholdOfPollutant ?pollutant ;
+                   xemo:hasThresholdKind xemo:LimitValue ;
+                   xemo:hasAveragingPeriod/time:days 1 ;
+                   xemo:hasQuantityValue/qudt:numericValue ?threshold .
+
+                FILTER(?value < ?threshold)
+            }
+        """ ;
+    ] .
+
+#################################################################
+# Yellow warning
+# threshold <= value < 1.5 * threshold
+#################################################################
+
+demo:YellowWarningHourlyShape
+    a sh:NodeShape ;
+    sh:targetClass sosa:Observation ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Yellow warning: Apply preventive mitigation measures such as water spraying and truck speed reduction." ;
+        sh:select """
+            PREFIX time: <http://www.w3.org/2006/time#>
+            PREFIX xemo: <https://example.org/xemo#>
+            PREFIX sosa: <http://www.w3.org/ns/sosa/>
+            PREFIX qudt: <http://qudt.org/schema/qudt/>
+
+            SELECT $this ?feat ?pollutant ?value ?threshold ?unit
+            WHERE {
+                $this a sosa:Observation ;
+                      sosa:observedProperty ?pollutant ;
+                      sosa:hasFeatureOfInterest ?feat ;
+                      sosa:hasResult/qudt:hasUnit ?unit ;
+                      sosa:hasResult/qudt:numericValue ?value ;
+                      sosa:hasProcedure xemo:HourlyMean .
+
+                ?t xemo:isThresholdOfPollutant ?pollutant ;
+                   xemo:hasThresholdKind xemo:LimitValue ;
+                   xemo:hasAveragingPeriod/time:days 1 ;
+                   xemo:hasQuantityValue/qudt:numericValue ?threshold .
+
+                FILTER(?value >= ?threshold && ?value < 1.5* ?threshold)
+            }
+        """ ;
+    ] .
+
+#################################################################
+# Orange warning
+# value > 1.5 * threshold
+#################################################################
+
+demo:OrangeWarningHourlyShape
+    a sh:NodeShape ;
+    sh:targetClass sosa:Observation ;
+    sh:severity sh:Violation ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Orange warning: Immediate action is required, including temporary suspension of high dust-generating activities and implementation of intensified mitigation measures." ;
+        sh:select """
+            PREFIX time: <http://www.w3.org/2006/time#>
+            PREFIX xemo: <https://example.org/xemo#>
+            PREFIX sosa: <http://www.w3.org/ns/sosa/>
+            PREFIX qudt: <http://qudt.org/schema/qudt/>
+
+            SELECT $this ?feat ?pollutant ?value ?threshold ?alert ?unit
+            WHERE {
+                $this a sosa:Observation ;
+                      sosa:observedProperty ?pollutant ;
+                      sosa:hasFeatureOfInterest ?feat ;
+                      sosa:hasResult/qudt:hasUnit ?unit ;
+                      sosa:hasResult/qudt:numericValue ?value ;
+                      sosa:hasProcedure xemo:HourlyMean .
+
+                ?t xemo:isThresholdOfPollutant ?pollutant ;
+                   xemo:hasThresholdKind xemo:LimitValue ;
+                   xemo:hasAveragingPeriod/time:days 1 ;
+                   xemo:hasQuantityValue/qudt:numericValue ?threshold .
+
+                FILTER(?value >= 1.5*?threshold)
+            }
+        """ ;
+    ] .
