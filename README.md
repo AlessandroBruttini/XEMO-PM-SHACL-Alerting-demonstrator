@@ -3,6 +3,7 @@
 A lightweight semantic monitoring pipeline for construction-site PM emissions that combines **InfluxDB**, **RDF**, **GraphDB**, and **SHACL** to enable semantic validation and automatic alert generation.
 
 The repository demonstrates how real-time sensor observations can be transformed into semantic knowledge graphs and validated against ontology-based rules.
+This repository contains the scripts and SHACL shapes used for the PM alerting demonstrator based on the [XEMO ontology](https://github.com/AlessandroBruttini/XEMO).
 
 ---
 
@@ -135,6 +136,14 @@ pip install rdflib pyshacl SPARQLWrapper requests influxdb-client
 ```
 
 ---
+
+## XEMO ontology
+
+The demonstrator uses the XEMO ontology to represent construction sites, emission sources, pollutants, sensors, observations, and regulatory thresholds.
+
+The ontology and its documentation are maintained in a separate repository:
+
+- [XEMO ontology repository](https://github.com/AlessandroBruttini/XEMO)
 
 ## Configuration
 
