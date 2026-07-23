@@ -1,6 +1,6 @@
-# XEMO Air Quality Monitoring Pipeline
+# XEMO PM Emission Monitoring Pipeline
 
-A lightweight semantic monitoring pipeline for construction-site air quality that combines **InfluxDB**, **RDF**, **GraphDB**, and **SHACL** to enable semantic validation and automatic alert generation.
+A lightweight semantic monitoring pipeline for construction-site PM emissions that combines **InfluxDB**, **RDF**, **GraphDB**, and **SHACL** to enable semantic validation and automatic alert generation.
 
 The repository demonstrates how real-time sensor observations can be transformed into semantic knowledge graphs and validated against ontology-based rules.
 
@@ -11,7 +11,7 @@ The repository demonstrates how real-time sensor observations can be transformed
 ```
 .
 ├── connector.py                # Semantic connector and validation pipeline
-├── ingestor.py                 # Air quality data simulator
+├── ingestor.py                 # Air quality pm emissions simulator
 ├── shapes/warnings.shacl.ttl    # SHACL warning rules
 └── README.md
 ```
